@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planer Dnia</title>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-900">
+    <div class="max-w-2xl mx-auto mt-10 p-5 bg-white rounded-lg shadow">
+        <h1 class="text-2xl font-bold mb-5 text-center">Day Planner</h1>
+
+        <!-- Input for new tasks -->
+        <div class="flex items-center mb-4">
+            <input id="task-input" type="text" placeholder="Add new task..." 
+                class="flex-grow p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <button id="add-task" class="ml-2 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">
+                Dodaj
+            </button>
+        </div>
+
+        <!-- Task List -->
+        <ul id="task-list" class="list-none space-y-2">
+            <!-- Tasks will be dynamically added here -->
+        </ul>
+
+        <!-- Clear all tasks -->
+        <button id="clear-tasks" class="mt-5 w-full px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600">
+            Clean all
+        </button>
+    </div>
+
+    <script>
+        // Select elements
+        const taskInput = document.getElementById('task-input');
+        const addTaskButton = document.getElementById('add-task');
+        const taskList = document.getElementById('task-list');
+        const clearTasksButton = document.getElementById('clear-tasks');
+
+        // Load tasks from LocalStorage
+        const loadTasks = () => {
+            const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+            tasks.forEach(task => addTask(task));
+        };
+
+        // Save tasks to LocalStorage
+        const saveTasks = () => {
+            const tasks = Array.from(taskList.children).map(li => li.textContent.replace('✖', '').trim());
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+        };
+
+        // Add a new task
+        const addTask = (taskText) => {
+            const li = document.createElement('li');
+            li.className = 'flex items-center justify-between p-2 bg-gray-200 rounded-md shadow';
+
+            const span = document.createElement('span');
+            span.textContent = taskText;
+            li.appendChild(span);
+
+            const deleteButton = document.createElement('button');
+            deleteButton.textContent = '✖';
+            deleteButton.className = 'text-red-500 hover:text-red-700';
+            deleteButton.onclick = () => {
+                li.remove();
+                saveTasks();
+            };
+            li.appendChild(deleteButton);
+
+            taskList.appendChild(li);
+            saveTasks();
+        };
+
+        // Add task on button click or Enter key
+        addTaskButton.onclick = () => {
+            const taskText = taskInput.value.trim();
+            if (taskText) {
+                addTask(taskText);
+                taskInput.value = '';
+            }
+        };
+
+        taskInput.onkeypress = (e) => {
+            if (e.key === 'Enter') {
+                addTaskButton.click();
+            }
+        };
+
+        // Clear all tasks
+        clearTasksButton.onclick = () => {
+            taskList.innerHTML = '';
+            saveTasks();
+        };
+
+        // Enable drag-and-drop with SortableJS
+        new Sortable(taskList, {
+            animation: 150,
+            onEnd: saveTasks
+        });
+
+        // Initialize
+        loadTasks();
+    </script>
+</body>
+</html>
